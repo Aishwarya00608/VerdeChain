@@ -1,0 +1,31 @@
+voyage_id,date,origin,destination,transport_mode,fuel_type,distance_km,weight_tonnes,cost_usd,carrier,vehicle_id,load_factor_pct,return_empty
+VYG-2026-001,2026-01-03,Mumbai,Delhi,road,diesel,1400,22.5,3200,BlueDart Logistics,MH-TRK-441,87,false
+VYG-2026-002,2026-01-03,Delhi,Jaipur,road,cng,270,14.0,980,GreenHaul India,DL-TRK-192,72,false
+VYG-2026-003,2026-01-04,Mumbai,Pune,road,electric,148,8.2,540,EcoFreight EV,MH-EV-023,95,false
+VYG-2026-004,2026-01-04,Chennai,Bangalore,road,diesel,346,19.8,1100,SunTrans Pvt,TN-TRK-887,65,true
+VYG-2026-005,2026-01-05,Kolkata,Bhubaneswar,rail,electric,490,65.0,2800,Indian Railways Freight,IR-WAGON-4421,92,false
+VYG-2026-006,2026-01-05,Mumbai,Ahmedabad,road,diesel,540,31.0,2100,FastLink Cargo,MH-TRK-558,78,false
+VYG-2026-007,2026-01-06,Delhi,Lucknow,road,cng,510,18.5,1450,GreenHaul India,UP-TRK-334,81,false
+VYG-2026-008,2026-01-06,Chennai,Hyderabad,rail,diesel,700,88.0,4200,South Central Rail,IR-WAGON-2210,96,false
+VYG-2026-009,2026-01-07,Mumbai,Nagpur,road,diesel,840,27.3,2900,BlueDart Logistics,MH-TRK-667,70,false
+VYG-2026-010,2026-01-07,Hyderabad,Vijayawada,road,cng,275,11.0,820,TelanganaExpress,TS-TRK-112,88,true
+VYG-2026-011,2026-01-08,Delhi,Chandigarh,road,electric,250,9.5,680,EcoFreight EV,HR-EV-045,91,false
+VYG-2026-012,2026-01-08,Kolkata,Dhanbad,road,diesel,295,16.8,1050,EastIndia Cargo,WB-TRK-773,63,false
+VYG-2026-013,2026-01-09,Mumbai,Chennai,sea,hfo,1180,420.0,18500,Shipping Corp India,SCI-VESSEL-07,89,false
+VYG-2026-014,2026-01-09,Delhi,Mumbai,air,kerosene,1150,2.8,9200,IndiaCargo Air,6E-CARGO-221,55,false
+VYG-2026-015,2026-01-10,Pune,Nashik,road,electric,210,7.1,490,EcoFreight EV,MH-EV-031,94,false
+VYG-2026-016,2026-01-10,Ahmedabad,Surat,road,diesel,265,23.4,890,FastLink Cargo,GJ-TRK-449,76,false
+VYG-2026-017,2026-01-11,Bangalore,Kochi,road,diesel,560,18.9,2100,SouthernMove,KA-TRK-221,68,false
+VYG-2026-018,2026-01-11,Delhi,Kolkata,rail,electric,1450,112.0,7800,Indian Railways Freight,IR-WAGON-8802,97,false
+VYG-2026-019,2026-01-12,Mumbai,Hyderabad,road,cng,720,29.5,3300,GreenHaul India,MH-TRK-994,82,false
+VYG-2026-020,2026-01-12,Chennai,Coimbatore,rail,diesel,500,74.0,3600,Southern Rail,IR-WAGON-3315,90,false
+VYG-2026-021,2026-01-13,Jaipur,Jodhpur,road,diesel,340,12.2,940,RajasthanCargo,RJ-TRK-667,59,true
+VYG-2026-022,2026-01-13,Kolkata,Guwahati,rail,diesel,1030,95.0,5400,Northeast Rail,IR-WAGON-1107,88,false
+VYG-2026-023,2026-01-14,Mumbai,Delhi,road,diesel,1400,33.7,4100,BlueDart Logistics,MH-TRK-512,84,false
+VYG-2026-024,2026-01-14,Hyderabad,Bangalore,road,electric,570,10.4,1250,EcoFreight EV,TS-EV-018,93,false
+VYG-2026-025,2026-01-15,Delhi,Amritsar,road,cng,460,16.1,1380,PunjabExpress,PB-TRK-223,77,false
+VYG-2026-026,2026-01-15,Mumbai,Kolkata,sea,hfo,2100,550.0,24000,Shipping Corp India,SCI-VESSEL-12,92,false
+VYG-2026-027,2026-01-16,Chennai,Delhi,air,kerosene,2200,3.1,14500,IndiaCargo Air,AI-CARGO-118,48,false
+VYG-2026-028,2026-01-16,Pune,Mumbai,road,electric,148,5.8,360,EcoFreight EV,MH-EV-055,98,false
+VYG-2026-029,2026-01-17,Bangalore,Hyderabad,road,diesel,570,24.6,2200,KarnatakaCargo,KA-TRK-334,71,false
+VYG-2026-030,2026-01-17,Delhi,Jaipur,rail,electric,305,80.0,2900,Indian Railways Freight,IR-WAGON-5521,95,false

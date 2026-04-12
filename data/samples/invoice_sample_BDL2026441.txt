@@ -1,0 +1,65 @@
+FREIGHT INVOICE — SAMPLE STRUCTURE
+===================================
+This file documents the PDF invoice format that VerdeChain's OCR engine
+extracts data from. Real PDFs are scanned images or native PDFs.
+The fields below are what the regex-based extractor looks for.
+
+──────────────────────────────────────────────────────────────────────
+                    BLUEDART LOGISTICS PVT. LTD.
+                  Freight Invoice #BDL-2026-00441
+──────────────────────────────────────────────────────────────────────
+
+Invoice Date    : 17-Jan-2026
+Voyage ID       : VYG-2026-001
+Bill To         : Pharma Corp India Ltd., Mumbai
+
+SHIPMENT DETAILS
+----------------
+Origin          : Mumbai, Maharashtra
+Destination     : Delhi, NCT
+Transport Mode  : Road (HGV)
+Fuel Type       : Diesel
+Vehicle No.     : MH-TRK-441
+Driver ID       : DRV-8821
+
+CARGO DETAILS
+-------------
+Description     : Pharmaceutical Goods (Non-Hazardous)
+Weight          : 22.5 t
+Volume          : 48 CBM
+Distance        : 1400 km
+Load Factor     : 87%
+
+EMISSIONS RECORD
+----------------
+Emission Factor : 62 gCO2e/tonne-km  [GLEC v3 Road/Diesel]
+CO2e Emitted    : 1.948 tCO2e
+Carbon Intensity: 3.87 gCO2e/tonne
+
+CHARGES
+-------
+Base Freight    : $2,800.00
+Fuel Surcharge  : $280.00
+Carbon Levy     : $120.00
+                  ----------
+Total Cost      : $3,200.00
+Currency        : USD
+
+CERTIFICATION
+-------------
+This shipment complies with IN-ROAD-NH48 Zone emission standards.
+Carbon data verified against GLEC Framework v3.
+Audit reference: AUD-2026-MUM-001
+
+Authorised Signatory: Ramesh Kumar (Operations Head)
+──────────────────────────────────────────────────────────────────────
+
+OCR EXTRACTION TARGET FIELDS (what VerdeChain's parser looks for):
+  Regex: Voyage[:\s]+([A-Z0-9\-]+)       → voyage_id
+  Regex: Origin[:\s]+([A-Za-z ,]+)       → origin
+  Regex: Destination[:\s]+([A-Za-z ,]+)  → destination
+  Regex: Distance[:\s]+([\d\.]+)\s*km    → distance_km
+  Regex: Weight[:\s]+([\d\.]+)\s*t       → weight_tonnes
+  Regex: Cost[:\s]+\$?([\d\.,]+)         → cost_usd
+  Keyword scan for mode: road/rail/sea/air/intermodal
+  Keyword scan for fuel: diesel/cng/electric/hfo/lng/kerosene

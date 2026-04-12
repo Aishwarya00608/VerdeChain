@@ -1,0 +1,64 @@
+# VerdeChain Configuration
+# Copy to .env for secrets; keep this file committed (no passwords here)
+
+ingestion:
+  watch_directory: ./data/incoming
+  supported_formats: [csv, json, pdf]
+  dedup_window_days: 30
+  ocr_dpi: 200
+  strict_mode: false
+
+carbon:
+  standard: GLEC_v3
+  default_budget_tco2e_monthly: 175.0
+  route_limits:
+    RT-MUM-DEL: 85.0
+    RT-DEL-KOL: 60.0
+    RT-MUM-CHN: 120.0
+    RT-CHN-BLR: 50.0
+    RT-DEL-AIR: 30.0
+
+optimization:
+  carbon_weight: 0.70
+  cost_weight: 0.30
+  auto_rebalance_threshold: 0.90   # apply substitution automatically above this
+  min_feasibility: medium
+
+forecasting:
+  horizon_days: 30
+  seasonal_period: 7               # weekly seasonality
+  training_window_days: 14
+  confidence_level: 0.95
+
+alerts:
+  levels:
+    advisory:  0.60
+    warning:   0.75
+    critical:  0.90
+    emergency: 1.00
+  channels:
+    email:
+      smtp_host: smtp.company.com
+      port: 587
+      from: verdechain@company.com
+      to:
+        - compliance@company.com
+        - sustainability@company.com
+    sms:
+      provider: twilio
+      to: "+91XXXXXXXXXX"
+    webhook:
+      url: https://compliance.company.com/api/alerts
+
+api:
+  host: 0.0.0.0
+  port: 8000
+  reload: false
+  log_level: info
+
+database:
+  url: postgresql://verdechain:password@localhost:5432/verdechain
+  pool_size: 10
+
+redis:
+  url: redis://localhost:6379/0
