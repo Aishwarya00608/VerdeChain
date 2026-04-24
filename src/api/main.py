@@ -15,7 +15,7 @@ from fastapi import (
 from fastapi.middleware.cors import CORSMiddleware
 from typing import List
 import tempfile
-import os  
+import os
 from pathlib import Path
 
 from src.ingestion.parser import FreightDataParser
