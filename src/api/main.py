@@ -23,6 +23,8 @@ from src.optimization.engine import rank_substitutions
 from src.forecasting.predictor import forecast_budget
 from src.alerts.router import AlertRouter, classify, CarbonAlert, AlertLevel
 
+from src.notifyer import send_dynamic_alert
+
 app = FastAPI(
     title="VerdeChain API",
     description="Automated ESG Logistics Intelligence Platform",

@@ -1,3 +1,5 @@
+from email.message import EmailMessage
+import os
 def send_dynamic_alert(recipient_email, shipment_id, issue_type):
     msg = EmailMessage()
     msg.set_content(
