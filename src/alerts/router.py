@@ -161,12 +161,20 @@ class AlertRouter:
               </p>
               <p><strong>CO₂e:</strong> {alert.co2e_tonnes:.2f}t
                  / {alert.budget_tonnes:.1f}t budget</p>
-              {"<p><strong>Forecast Breach:</strong> In "
-               + str(alert.forecast_breach_days) + " days</p>"
-               if alert.forecast_breach_days else ""}
-              {"<p><strong>Recommended Action:</strong> "
-               + alert.top_substitution + "</p>"
-               if alert.top_substitution else ""}
+              {
+                "<p><strong>Forecast Breach:</strong> In "
+                + str(alert.forecast_breach_days)
+                + " days</p>"
+                if alert.forecast_breach_days
+                else ""
+            }
+              {
+                "<p><strong>Recommended Action:</strong> "
+                + alert.top_substitution
+                + "</p>"
+                if alert.top_substitution
+                else ""
+            }
               <p style="color:#666;font-size:0.8em;margin-top:20px">
                 {alert.timestamp} · VerdeChain Automated Intelligence
               </p>
