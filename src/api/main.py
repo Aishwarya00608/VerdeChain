@@ -4,17 +4,24 @@ verdechain/api/main.py
 FastAPI application — REST endpoints + WebSocket for live dashboard.
 """
 
-from fastapi import FastAPI, UploadFile, File, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import (
+    FastAPI,
+    UploadFile,
+    File,
+    HTTPException,
+    WebSocket,
+    WebSocketDisconnect,
+)
 from fastapi.middleware.cors import CORSMiddleware
 from typing import List
 import tempfile
-import os #json, asyncio
+import os  
 from pathlib import Path
 
 from src.ingestion.parser import FreightDataParser
 from src.optimization.engine import rank_substitutions
 from src.forecasting.predictor import forecast_budget
-from src.alerts.router import AlertRouter, classify, CarbonAlert, AlertLevel, LEVEL_NAMES
+from src.alerts.router import AlertRouter, classify, CarbonAlert, AlertLevel
 
 app = FastAPI(
     title="VerdeChain API",
@@ -22,8 +29,9 @@ app = FastAPI(
     version="2.1.0",
 )
 
-app.add_middleware(CORSMiddleware, allow_origins=["*"],
-                   allow_methods=["*"], allow_headers=["*"])
+app.add_middleware(
+    CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"]
+)
 
 # In-memory state (replace with TimescaleDB in production)
 _sessions: dict = {}
@@ -32,6 +40,7 @@ alert_router = AlertRouter(config={})  # Load from config in production
 
 
 # ── WebSocket broadcast ───────────────────────────────────────────────────────
+
 
 async def broadcast(msg: dict):
     dead = []
@@ -56,6 +65,7 @@ async def websocket_endpoint(ws: WebSocket):
 
 
 # ── File upload + analysis ────────────────────────────────────────────────────
+
 
 @app.post("/api/ingest")
 async def ingest_files(files: List[UploadFile] = File(...)):
@@ -97,9 +107,11 @@ async def ingest_files(files: List[UploadFile] = File(...)):
 
 # ── Optimization ──────────────────────────────────────────────────────────────
 
+
 @app.get("/api/optimize/{route_id}")
-def optimize_route(route_id: str, mode: str = "road", fuel: str = "diesel",
-                   threshold_pct: float = 0.0):
+def optimize_route(
+    route_id: str, mode: str = "road", fuel: str = "diesel", threshold_pct: float = 0.0
+):
     """Rank modal shift substitutions for a route."""
     subs = rank_substitutions(route_id, mode, fuel, threshold_pct)
     return {"route_id": route_id, "substitutions": [vars(s) for s in subs]}
@@ -107,9 +119,11 @@ def optimize_route(route_id: str, mode: str = "road", fuel: str = "diesel",
 
 # ── Forecasting ───────────────────────────────────────────────────────────────
 
+
 @app.post("/api/forecast/{route_id}")
-def forecast_route(route_id: str, daily_emissions: List[float],
-                   monthly_budget: float = 100.0):
+def forecast_route(
+    route_id: str, daily_emissions: List[float], monthly_budget: float = 100.0
+):
     """Forecast 30-day carbon trajectory and detect breach risk."""
     result = forecast_budget(route_id, daily_emissions, monthly_budget)
     return vars(result)
@@ -117,10 +131,16 @@ def forecast_route(route_id: str, daily_emissions: List[float],
 
 # ── Alerts ────────────────────────────────────────────────────────────────────
 
+
 @app.post("/api/alert/check")
-async def check_and_alert(route_id: str, threshold_pct: float,
-                          route_name: str = "", co2e: float = 0,
-                          budget: float = 100, forecast_days: int = None):
+async def check_and_alert(
+    route_id: str,
+    threshold_pct: float,
+    route_name: str = "",
+    co2e: float = 0,
+    budget: float = 100,
+    forecast_days: int = None,
+):
     """Classify alert level and dispatch notifications if threshold crossed."""
     level = classify(threshold_pct)
     if level == AlertLevel.NORMAL:
@@ -143,19 +163,21 @@ async def check_and_alert(route_id: str, threshold_pct: float,
 
 # ── Health check ─────────────────────────────────────────────────────────────
 
+
 @app.get("/health")
 def health():
     return {"status": "nominal", "version": "2.1.0", "system": "VerdeChain"}
 
+
 @app.post("/shipments/{shipment_id}/alert")
 async def trigger_shipment_alert(shipment_id: str, issue: str, user_email: str):
     # This function is called when the system detects a problem
-    
+
     # 1. Logic to log the error to TimescaleDB goes here...
-    
+
     # 2. Trigger the actual email alert
     success = send_dynamic_alert(user_email, shipment_id, issue)
-    
+
     if success:
         return {"message": f"Alert sent to {user_email}"}
     else:

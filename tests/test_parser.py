@@ -8,31 +8,88 @@ Run: pytest tests/ -v --cov=src
 import pytest
 import json
 import csv
-import tempfile
-import os
 from pathlib import Path
 
 # Add src to path
 import sys
+
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.ingestion.parser import (
-    FreightDataParser, FreightRecord, EMISSION_FACTORS
-)
+from src.ingestion.parser import FreightDataParser, EMISSION_FACTORS
 
 
 # ── Fixtures ──────────────────────────────────────────────────────────────────
 
+
 @pytest.fixture
 def sample_csv(tmp_path):
     data = [
-        ["voyage_id", "date", "origin", "destination", "transport_mode",
-         "fuel_type", "distance_km", "weight_tonnes", "cost_usd"],
-        ["VYG-001", "2026-01-01", "Mumbai",  "Delhi",     "road", "diesel",  "1400", "22.5", "3200"],
-        ["VYG-002", "2026-01-02", "Delhi",   "Kolkata",   "rail", "electric", "1450", "65.0", "7800"],
-        ["VYG-003", "2026-01-03", "Chennai", "Bangalore", "road", "cng",      "346",  "19.8", "1100"],
-        ["VYG-004", "2026-01-04", "Mumbai",  "Chennai",   "sea",  "hfo",      "1180", "420.0","18500"],
-        ["VYG-005", "2026-01-05", "Delhi",   "Mumbai",    "air",  "kerosene", "1150", "2.8",  "9200"],
+        [
+            "voyage_id",
+            "date",
+            "origin",
+            "destination",
+            "transport_mode",
+            "fuel_type",
+            "distance_km",
+            "weight_tonnes",
+            "cost_usd",
+        ],
+        [
+            "VYG-001",
+            "2026-01-01",
+            "Mumbai",
+            "Delhi",
+            "road",
+            "diesel",
+            "1400",
+            "22.5",
+            "3200",
+        ],
+        [
+            "VYG-002",
+            "2026-01-02",
+            "Delhi",
+            "Kolkata",
+            "rail",
+            "electric",
+            "1450",
+            "65.0",
+            "7800",
+        ],
+        [
+            "VYG-003",
+            "2026-01-03",
+            "Chennai",
+            "Bangalore",
+            "road",
+            "cng",
+            "346",
+            "19.8",
+            "1100",
+        ],
+        [
+            "VYG-004",
+            "2026-01-04",
+            "Mumbai",
+            "Chennai",
+            "sea",
+            "hfo",
+            "1180",
+            "420.0",
+            "18500",
+        ],
+        [
+            "VYG-005",
+            "2026-01-05",
+            "Delhi",
+            "Mumbai",
+            "air",
+            "kerosene",
+            "1150",
+            "2.8",
+            "9200",
+        ],
     ]
     path = tmp_path / "test_shipments.csv"
     with open(path, "w", newline="") as f:
@@ -44,10 +101,28 @@ def sample_csv(tmp_path):
 def sample_json(tmp_path):
     data = {
         "shipments": [
-            {"id": "TLM-001", "from": "Mumbai",  "to": "Delhi",   "mode": "road",
-             "fuel": "diesel",   "distance_km": 1400, "cargo_weight_t": 22.5, "cost": 3200, "date": "2026-01-01"},
-            {"id": "TLM-002", "from": "Kolkata", "to": "Guwahati","mode": "rail",
-             "fuel": "electric", "distance_km": 1030, "cargo_weight_t": 95.0, "cost": 5400, "date": "2026-01-02"},
+            {
+                "id": "TLM-001",
+                "from": "Mumbai",
+                "to": "Delhi",
+                "mode": "road",
+                "fuel": "diesel",
+                "distance_km": 1400,
+                "cargo_weight_t": 22.5,
+                "cost": 3200,
+                "date": "2026-01-01",
+            },
+            {
+                "id": "TLM-002",
+                "from": "Kolkata",
+                "to": "Guwahati",
+                "mode": "rail",
+                "fuel": "electric",
+                "distance_km": 1030,
+                "cargo_weight_t": 95.0,
+                "cost": 5400,
+                "date": "2026-01-02",
+            },
         ]
     }
     path = tmp_path / "test_stream.json"
@@ -58,8 +133,17 @@ def sample_json(tmp_path):
 @pytest.fixture
 def flat_json(tmp_path):
     data = [
-        {"id": "FL-001", "from": "Pune", "to": "Nashik", "mode": "electric road",
-         "fuel": "ev", "distance_km": 210, "cargo_weight_t": 7.1, "cost": 490, "date": "2026-01-03"},
+        {
+            "id": "FL-001",
+            "from": "Pune",
+            "to": "Nashik",
+            "mode": "electric road",
+            "fuel": "ev",
+            "distance_km": 210,
+            "cargo_weight_t": 7.1,
+            "cost": 490,
+            "date": "2026-01-03",
+        },
     ]
     path = tmp_path / "flat.json"
     path.write_text(json.dumps(data))
@@ -70,10 +154,50 @@ def flat_json(tmp_path):
 def duplicate_csv(tmp_path):
     """CSV with duplicate voyage_ids — should be deduplicated."""
     rows = [
-        ["voyage_id","date","origin","destination","transport_mode","fuel_type","distance_km","weight_tonnes","cost_usd"],
-        ["DUP-001","2026-01-01","Mumbai","Delhi","road","diesel","1400","22.5","3200"],
-        ["DUP-001","2026-01-01","Mumbai","Delhi","road","diesel","1400","22.5","3200"],  # duplicate
-        ["DUP-002","2026-01-02","Delhi","Jaipur","road","cng","270","14.0","980"],
+        [
+            "voyage_id",
+            "date",
+            "origin",
+            "destination",
+            "transport_mode",
+            "fuel_type",
+            "distance_km",
+            "weight_tonnes",
+            "cost_usd",
+        ],
+        [
+            "DUP-001",
+            "2026-01-01",
+            "Mumbai",
+            "Delhi",
+            "road",
+            "diesel",
+            "1400",
+            "22.5",
+            "3200",
+        ],
+        [
+            "DUP-001",
+            "2026-01-01",
+            "Mumbai",
+            "Delhi",
+            "road",
+            "diesel",
+            "1400",
+            "22.5",
+            "3200",
+        ],  # duplicate
+        [
+            "DUP-002",
+            "2026-01-02",
+            "Delhi",
+            "Jaipur",
+            "road",
+            "cng",
+            "270",
+            "14.0",
+            "980",
+        ],
     ]
     path = tmp_path / "dupes.csv"
     with open(path, "w", newline="") as f:
@@ -82,6 +206,7 @@ def duplicate_csv(tmp_path):
 
 
 # ── Emission Factor Tests ─────────────────────────────────────────────────────
+
 
 def test_emission_factors_exist():
     assert ("road", "diesel") in EMISSION_FACTORS
@@ -102,6 +227,7 @@ def test_electric_lower_than_diesel():
 
 
 # ── CSV Ingestion Tests ───────────────────────────────────────────────────────
+
 
 def test_csv_ingest_count(sample_csv):
     p = FreightDataParser()
@@ -140,7 +266,17 @@ def test_csv_column_aliases(tmp_path):
     """Test that alias column names are accepted."""
     rows = [
         ["voyage", "date", "from", "to", "mode", "fuel", "distance", "weight", "cost"],
-        ["AL-001", "2026-01-01", "Mumbai", "Delhi", "road", "diesel", "1400", "22.5", "3200"],
+        [
+            "AL-001",
+            "2026-01-01",
+            "Mumbai",
+            "Delhi",
+            "road",
+            "diesel",
+            "1400",
+            "22.5",
+            "3200",
+        ],
     ]
     path = tmp_path / "aliases.csv"
     with open(path, "w", newline="") as f:
@@ -155,8 +291,15 @@ def test_csv_column_aliases(tmp_path):
 def test_csv_missing_optional_fields(tmp_path):
     """CSV with only required fields should still parse."""
     rows = [
-        ["voyage_id", "origin", "destination", "transport_mode", "fuel_type",
-         "distance_km", "weight_tonnes"],
+        [
+            "voyage_id",
+            "origin",
+            "destination",
+            "transport_mode",
+            "fuel_type",
+            "distance_km",
+            "weight_tonnes",
+        ],
         ["MIN-001", "Delhi", "Jaipur", "road", "diesel", "270", "14.0"],
     ]
     path = tmp_path / "minimal.csv"
@@ -170,6 +313,7 @@ def test_csv_missing_optional_fields(tmp_path):
 
 # ── JSON Ingestion Tests ──────────────────────────────────────────────────────
 
+
 def test_json_ingest_count(sample_json):
     p = FreightDataParser()
     n = p.ingest_json(sample_json)
@@ -180,7 +324,7 @@ def test_json_flat_array(flat_json):
     p = FreightDataParser()
     n = p.ingest_json(flat_json)
     assert n == 1
-    assert p.records[0].mode == "road"   # "electric road" → road
+    assert p.records[0].mode == "road"  # "electric road" → road
     assert p.records[0].fuel_type == "electric"  # "ev" → electric
 
 
@@ -197,6 +341,7 @@ def test_json_mode_fuel_normalisation(sample_json):
 
 # ── Cross-format Deduplication ────────────────────────────────────────────────
 
+
 def test_cross_format_deduplication(sample_csv, sample_json):
     """Same voyage_id in both CSV and JSON should deduplicate."""
     p = FreightDataParser()
@@ -208,6 +353,7 @@ def test_cross_format_deduplication(sample_csv, sample_json):
 
 
 # ── Summary Tests ─────────────────────────────────────────────────────────────
+
 
 def test_summary_fields(sample_csv):
     p = FreightDataParser()
@@ -225,12 +371,21 @@ def test_to_dataframe(sample_csv):
     p.ingest_csv(sample_csv)
     df = p.to_dataframe()
     assert len(df) == 5
-    required_cols = {"voyage_id", "origin", "destination", "mode",
-                     "fuel_type", "co2e_tonnes", "cost_usd", "source_format"}
+    required_cols = {
+        "voyage_id",
+        "origin",
+        "destination",
+        "mode",
+        "fuel_type",
+        "co2e_tonnes",
+        "cost_usd",
+        "source_format",
+    }
     assert required_cols.issubset(set(df.columns))
 
 
 # ── Clear ─────────────────────────────────────────────────────────────────────
+
 
 def test_clear(sample_csv):
     p = FreightDataParser()
@@ -242,6 +397,7 @@ def test_clear(sample_csv):
 
 
 # ── Ingest file auto-detect ───────────────────────────────────────────────────
+
 
 def test_ingest_file_csv(sample_csv):
     p = FreightDataParser()

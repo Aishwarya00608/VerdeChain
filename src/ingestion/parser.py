@@ -21,25 +21,27 @@ logger = logging.getLogger(__name__)
 
 # ── Canonical Schema ──────────────────────────────────────────────────────────
 
+
 @dataclass
 class FreightRecord:
     """
     Canonical unified schema for all freight data sources.
     Every CSV row, JSON object, and PDF invoice maps to this.
     """
-    voyage_id:       str
-    origin:          str
-    destination:     str
-    distance_km:     float
-    weight_tonnes:   float
-    mode:            str    # road | rail | sea | air | intermodal
-    fuel_type:       str    # diesel | cng | electric | hfo | lng | kerosene
+
+    voyage_id: str
+    origin: str
+    destination: str
+    distance_km: float
+    weight_tonnes: float
+    mode: str  # road | rail | sea | air | intermodal
+    fuel_type: str  # diesel | cng | electric | hfo | lng | kerosene
     emission_factor: float  # gCO2e per tonne-km (GLEC v3)
-    co2e_tonnes:     float  # computed: (EF × dist × weight) / 1,000,000
-    cost_usd:        float
-    date:            str
-    source_format:   str    # csv | json | pdf
-    record_hash:     str    # 12-char SHA-256 dedup key
+    co2e_tonnes: float  # computed: (EF × dist × weight) / 1,000,000
+    cost_usd: float
+    date: str
+    source_format: str  # csv | json | pdf
+    record_hash: str  # 12-char SHA-256 dedup key
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
@@ -48,14 +50,14 @@ class FreightRecord:
 # ── Emission Factors (GLEC Framework v3) ─────────────────────────────────────
 
 EMISSION_FACTORS: Dict[tuple, float] = {
-    ("road",  "diesel"):   62.0,
-    ("road",  "cng"):      42.0,
-    ("road",  "electric"):  8.5,
-    ("rail",  "diesel"):   22.0,
-    ("rail",  "electric"):  6.0,
-    ("sea",   "hfo"):      11.0,
-    ("sea",   "lng"):       8.2,
-    ("air",   "kerosene"): 500.0,
+    ("road", "diesel"): 62.0,
+    ("road", "cng"): 42.0,
+    ("road", "electric"): 8.5,
+    ("rail", "diesel"): 22.0,
+    ("rail", "electric"): 6.0,
+    ("sea", "hfo"): 11.0,
+    ("sea", "lng"): 8.2,
+    ("air", "kerosene"): 500.0,
 }
 DEFAULT_EF = 62.0  # fallback: road diesel
 
@@ -63,39 +65,40 @@ DEFAULT_EF = 62.0  # fallback: road diesel
 # ── Regex Patterns for PDF Extraction ────────────────────────────────────────
 
 PDF_PATTERNS = {
-    "voyage_id":   r"Voyage(?:\s*ID)?[:\s]+([A-Z0-9\-]+)",
+    "voyage_id": r"Voyage(?:\s*ID)?[:\s]+([A-Z0-9\-]+)",
     "distance_km": r"Distance[:\s]+([\d\.]+)\s*km",
-    "weight_t":    r"Weight[:\s]+([\d\.]+)\s*t(?:onnes?)?",
-    "cost_usd":    r"(?:Total\s+Cost|Cost|Amount)[:\s]+\$?\s*([\d\.,]+)",
-    "co2e":        r"CO2e?[:\s]+([\d\.]+)\s*tCO2e?",
-    "origin":      r"Origin[:\s]+([A-Za-z ,\-]+?)(?:\n|,\s*[A-Z]{2})",
+    "weight_t": r"Weight[:\s]+([\d\.]+)\s*t(?:onnes?)?",
+    "cost_usd": r"(?:Total\s+Cost|Cost|Amount)[:\s]+\$?\s*([\d\.,]+)",
+    "co2e": r"CO2e?[:\s]+([\d\.]+)\s*tCO2e?",
+    "origin": r"Origin[:\s]+([A-Za-z ,\-]+?)(?:\n|,\s*[A-Z]{2})",
     "destination": r"Destination[:\s]+([A-Za-z ,\-]+?)(?:\n|,\s*[A-Z]{2})",
 }
 
-MODE_KEYWORDS  = ["intermodal", "rail", "sea", "air", "road"]
-FUEL_KEYWORDS  = ["electric", "kerosene", "diesel", "cng", "hfo", "lng"]
+MODE_KEYWORDS = ["intermodal", "rail", "sea", "air", "road"]
+FUEL_KEYWORDS = ["electric", "kerosene", "diesel", "cng", "hfo", "lng"]
 
 # CSV column aliases → canonical names
 COLUMN_ALIASES = {
-    "distance":         "distance_km",
-    "dist":             "distance_km",
-    "weight":           "weight_tonnes",
-    "wt":               "weight_tonnes",
-    "cost":             "cost_usd",
-    "amount":           "cost_usd",
-    "total":            "cost_usd",
-    "mode":             "transport_mode",
-    "fuel":             "fuel_type",
-    "transport":        "transport_mode",
-    "from":             "origin",
-    "to":               "destination",
-    "voyage":           "voyage_id",
-    "shipment_id":      "voyage_id",
-    "id":               "voyage_id",
+    "distance": "distance_km",
+    "dist": "distance_km",
+    "weight": "weight_tonnes",
+    "wt": "weight_tonnes",
+    "cost": "cost_usd",
+    "amount": "cost_usd",
+    "total": "cost_usd",
+    "mode": "transport_mode",
+    "fuel": "fuel_type",
+    "transport": "transport_mode",
+    "from": "origin",
+    "to": "destination",
+    "voyage": "voyage_id",
+    "shipment_id": "voyage_id",
+    "id": "voyage_id",
 }
 
 
 # ── Main Parser Class ─────────────────────────────────────────────────────────
+
 
 class FreightDataParser:
     """
@@ -111,10 +114,10 @@ class FreightDataParser:
     """
 
     def __init__(self, strict_mode: bool = False):
-        self.records:       List[FreightRecord] = []
-        self._seen_hashes:  set = set()
-        self.rejected:      int = 0
-        self.parse_errors:  int = 0
+        self.records: List[FreightRecord] = []
+        self._seen_hashes: set = set()
+        self.rejected: int = 0
+        self.parse_errors: int = 0
         self.strict_mode = strict_mode
 
     # ── Internal helpers ────────────────────────────────────────────────────
@@ -132,20 +135,29 @@ class FreightDataParser:
     @staticmethod
     def _normalise_mode(raw: str) -> str:
         raw = raw.lower().strip()
-        if "rail" in raw:     return "rail"
-        if "sea" in raw or "ship" in raw or "vessel" in raw or "ocean" in raw: return "sea"
-        if "air" in raw or "flight" in raw or "cargo" in raw: return "air"
-        if "intermodal" in raw or "multi" in raw: return "intermodal"
+        if "rail" in raw:
+            return "rail"
+        if "sea" in raw or "ship" in raw or "vessel" in raw or "ocean" in raw:
+            return "sea"
+        if "air" in raw or "flight" in raw or "cargo" in raw:
+            return "air"
+        if "intermodal" in raw or "multi" in raw:
+            return "intermodal"
         return "road"
 
     @staticmethod
     def _normalise_fuel(raw: str) -> str:
         raw = raw.lower().strip()
-        if "electric" in raw or "ev" in raw or "battery" in raw: return "electric"
-        if "cng" in raw or "natural gas" in raw:                  return "cng"
-        if "kerosene" in raw or "jet" in raw:                     return "kerosene"
-        if "hfo" in raw or "heavy fuel" in raw:                   return "hfo"
-        if "lng" in raw:                                           return "lng"
+        if "electric" in raw or "ev" in raw or "battery" in raw:
+            return "electric"
+        if "cng" in raw or "natural gas" in raw:
+            return "cng"
+        if "kerosene" in raw or "jet" in raw:
+            return "kerosene"
+        if "hfo" in raw or "heavy fuel" in raw:
+            return "hfo"
+        if "lng" in raw:
+            return "lng"
         return "diesel"
 
     def _add_record(self, record: FreightRecord) -> bool:
@@ -170,37 +182,39 @@ class FreightDataParser:
             df = pd.read_csv(filepath, dtype=str)
 
             # Normalize column names
-            df.columns = [c.strip().lower().replace(" ", "_").replace("-", "_")
-                          for c in df.columns]
+            df.columns = [
+                c.strip().lower().replace(" ", "_").replace("-", "_")
+                for c in df.columns
+            ]
             df.rename(columns=COLUMN_ALIASES, inplace=True)
             df.fillna("", inplace=True)
 
             for _, row in df.iterrows():
                 try:
-                    mode  = self._normalise_mode(row.get("transport_mode", "road"))
-                    fuel  = self._normalise_fuel(row.get("fuel_type", "diesel"))
-                    dist  = float(row.get("distance_km", 0) or 0)
-                    wt    = float(row.get("weight_tonnes", 0) or 0)
-                    vid   = str(row.get("voyage_id", "")).strip() or "CSV-UNKNOWN"
-                    date  = str(row.get("date", "")).strip()
-                    orig  = str(row.get("origin", "")).strip()
-                    dest  = str(row.get("destination", "")).strip()
-                    cost  = float(str(row.get("cost_usd", 0)).replace(",", "") or 0)
+                    mode = self._normalise_mode(row.get("transport_mode", "road"))
+                    fuel = self._normalise_fuel(row.get("fuel_type", "diesel"))
+                    dist = float(row.get("distance_km", 0) or 0)
+                    wt = float(row.get("weight_tonnes", 0) or 0)
+                    vid = str(row.get("voyage_id", "")).strip() or "CSV-UNKNOWN"
+                    date = str(row.get("date", "")).strip()
+                    orig = str(row.get("origin", "")).strip()
+                    dest = str(row.get("destination", "")).strip()
+                    cost = float(str(row.get("cost_usd", 0)).replace(",", "") or 0)
 
                     rec = FreightRecord(
-                        voyage_id       = vid,
-                        origin          = orig,
-                        destination     = dest,
-                        distance_km     = dist,
-                        weight_tonnes   = wt,
-                        mode            = mode,
-                        fuel_type       = fuel,
-                        emission_factor = EMISSION_FACTORS.get((mode, fuel), DEFAULT_EF),
-                        co2e_tonnes     = self._compute_co2e(mode, fuel, dist, wt),
-                        cost_usd        = cost,
-                        date            = date,
-                        source_format   = "csv",
-                        record_hash     = self._compute_hash(vid, date, orig),
+                        voyage_id=vid,
+                        origin=orig,
+                        destination=dest,
+                        distance_km=dist,
+                        weight_tonnes=wt,
+                        mode=mode,
+                        fuel_type=fuel,
+                        emission_factor=EMISSION_FACTORS.get((mode, fuel), DEFAULT_EF),
+                        co2e_tonnes=self._compute_co2e(mode, fuel, dist, wt),
+                        cost_usd=cost,
+                        date=date,
+                        source_format="csv",
+                        record_hash=self._compute_hash(vid, date, orig),
                     )
                     self._add_record(rec)
                 except (ValueError, TypeError) as e:
@@ -215,7 +229,9 @@ class FreightDataParser:
                 raise
 
         added = len(self.records) - before
-        logger.info(f"CSV: +{added} records from {filepath} (rejected: {self.rejected})")
+        logger.info(
+            f"CSV: +{added} records from {filepath} (rejected: {self.rejected})"
+        )
         return added
 
     # ── JSON Ingestion ──────────────────────────────────────────────────────
@@ -236,10 +252,12 @@ class FreightDataParser:
             if isinstance(data, list):
                 shipments = data
             elif isinstance(data, dict):
-                shipments = (data.get("shipments")
-                             or data.get("data")
-                             or data.get("records")
-                             or [data])
+                shipments = (
+                    data.get("shipments")
+                    or data.get("data")
+                    or data.get("records")
+                    or [data]
+                )
             else:
                 shipments = []
 
@@ -248,34 +266,43 @@ class FreightDataParser:
                     continue
                 try:
                     mode = self._normalise_mode(
-                        s.get("mode") or s.get("transport_mode") or "road")
+                        s.get("mode") or s.get("transport_mode") or "road"
+                    )
                     fuel = self._normalise_fuel(
-                        s.get("fuel") or s.get("fuel_type") or "diesel")
+                        s.get("fuel") or s.get("fuel_type") or "diesel"
+                    )
                     dist = float(s.get("distance_km") or s.get("distance") or 0)
-                    wt   = float(s.get("cargo_weight_t")
-                                 or s.get("weight_tonnes")
-                                 or s.get("weight") or 0)
-                    vid  = (str(s.get("id") or s.get("voyage_id")
-                                or s.get("voyage_ref") or "JSON-UNKNOWN"))
+                    wt = float(
+                        s.get("cargo_weight_t")
+                        or s.get("weight_tonnes")
+                        or s.get("weight")
+                        or 0
+                    )
+                    vid = str(
+                        s.get("id")
+                        or s.get("voyage_id")
+                        or s.get("voyage_ref")
+                        or "JSON-UNKNOWN"
+                    )
                     date = str(s.get("date") or "")
                     orig = str(s.get("from") or s.get("origin") or "")
-                    dest = str(s.get("to")   or s.get("destination") or "")
+                    dest = str(s.get("to") or s.get("destination") or "")
                     cost = float(s.get("cost") or s.get("cost_usd") or 0)
 
                     rec = FreightRecord(
-                        voyage_id       = vid,
-                        origin          = orig,
-                        destination     = dest,
-                        distance_km     = dist,
-                        weight_tonnes   = wt,
-                        mode            = mode,
-                        fuel_type       = fuel,
-                        emission_factor = EMISSION_FACTORS.get((mode, fuel), DEFAULT_EF),
-                        co2e_tonnes     = self._compute_co2e(mode, fuel, dist, wt),
-                        cost_usd        = cost,
-                        date            = date,
-                        source_format   = "json",
-                        record_hash     = self._compute_hash(vid, date, orig),
+                        voyage_id=vid,
+                        origin=orig,
+                        destination=dest,
+                        distance_km=dist,
+                        weight_tonnes=wt,
+                        mode=mode,
+                        fuel_type=fuel,
+                        emission_factor=EMISSION_FACTORS.get((mode, fuel), DEFAULT_EF),
+                        co2e_tonnes=self._compute_co2e(mode, fuel, dist, wt),
+                        cost_usd=cost,
+                        date=date,
+                        source_format="json",
+                        record_hash=self._compute_hash(vid, date, orig),
                     )
                     self._add_record(rec)
                 except (ValueError, TypeError) as e:
@@ -313,6 +340,7 @@ class FreightDataParser:
                 try:
                     import pytesseract
                     from pdf2image import convert_from_path
+
                     images = convert_from_path(filepath, dpi=200)
                     for img in images:
                         text += pytesseract.image_to_string(img) + "\n"
@@ -324,12 +352,12 @@ class FreightDataParser:
                 m = re.search(pattern, text, re.IGNORECASE)
                 return m.group(1).strip() if m else None
 
-            vid    = extract(PDF_PATTERNS["voyage_id"])   or f"PDF-{Path(filepath).stem}"
-            dist   = float(extract(PDF_PATTERNS["distance_km"]) or 0)
-            wt     = float(extract(PDF_PATTERNS["weight_t"])    or 0)
-            cost   = float((extract(PDF_PATTERNS["cost_usd"]) or "0").replace(",", ""))
-            orig   = (extract(PDF_PATTERNS["origin"])      or "PDF-EXTRACT").strip()
-            dest   = (extract(PDF_PATTERNS["destination"]) or "PDF-EXTRACT").strip()
+            vid = extract(PDF_PATTERNS["voyage_id"]) or f"PDF-{Path(filepath).stem}"
+            dist = float(extract(PDF_PATTERNS["distance_km"]) or 0)
+            wt = float(extract(PDF_PATTERNS["weight_t"]) or 0)
+            cost = float((extract(PDF_PATTERNS["cost_usd"]) or "0").replace(",", ""))
+            orig = (extract(PDF_PATTERNS["origin"]) or "PDF-EXTRACT").strip()
+            dest = (extract(PDF_PATTERNS["destination"]) or "PDF-EXTRACT").strip()
 
             # Mode and fuel via keyword scan
             text_lower = text.lower()
@@ -337,19 +365,19 @@ class FreightDataParser:
             fuel = next((f for f in FUEL_KEYWORDS if f in text_lower), "diesel")
 
             rec = FreightRecord(
-                voyage_id       = vid,
-                origin          = orig,
-                destination     = dest,
-                distance_km     = dist,
-                weight_tonnes   = wt,
-                mode            = mode,
-                fuel_type       = fuel,
-                emission_factor = EMISSION_FACTORS.get((mode, fuel), DEFAULT_EF),
-                co2e_tonnes     = self._compute_co2e(mode, fuel, dist, wt),
-                cost_usd        = cost,
-                date            = "",
-                source_format   = "pdf",
-                record_hash     = self._compute_hash(vid, "pdf", filepath),
+                voyage_id=vid,
+                origin=orig,
+                destination=dest,
+                distance_km=dist,
+                weight_tonnes=wt,
+                mode=mode,
+                fuel_type=fuel,
+                emission_factor=EMISSION_FACTORS.get((mode, fuel), DEFAULT_EF),
+                co2e_tonnes=self._compute_co2e(mode, fuel, dist, wt),
+                cost_usd=cost,
+                date="",
+                source_format="pdf",
+                record_hash=self._compute_hash(vid, "pdf", filepath),
             )
             self._add_record(rec)
 
@@ -374,7 +402,9 @@ class FreightDataParser:
         elif ext == ".pdf":
             return self.ingest_pdf(filepath)
         else:
-            raise ValueError(f"Unsupported file format: {ext}. Use .csv, .json, or .pdf")
+            raise ValueError(
+                f"Unsupported file format: {ext}. Use .csv, .json, or .pdf"
+            )
 
     def ingest_directory(self, directory: str) -> int:
         """Ingest all supported files in a directory."""
@@ -401,17 +431,17 @@ class FreightDataParser:
         if df.empty:
             return {"total_records": 0, "duplicates_rejected": self.rejected}
         return {
-            "total_records":       len(self.records),
+            "total_records": len(self.records),
             "duplicates_rejected": self.rejected,
-            "parse_errors":        self.parse_errors,
-            "total_co2e_tonnes":   round(df["co2e_tonnes"].sum(), 4),
-            "total_cost_usd":      round(df["cost_usd"].sum(), 2),
-            "modes":               df["mode"].value_counts().to_dict(),
-            "sources":             df["source_format"].value_counts().to_dict(),
+            "parse_errors": self.parse_errors,
+            "total_co2e_tonnes": round(df["co2e_tonnes"].sum(), 4),
+            "total_cost_usd": round(df["cost_usd"].sum(), 2),
+            "modes": df["mode"].value_counts().to_dict(),
+            "sources": df["source_format"].value_counts().to_dict(),
             "date_range": {
                 "min": df["date"].min(),
                 "max": df["date"].max(),
-            }
+            },
         }
 
     def clear(self):
@@ -426,8 +456,10 @@ class FreightDataParser:
 
 if __name__ == "__main__":
     import sys
-    logging.basicConfig(level=logging.INFO,
-                        format="%(levelname)s | %(name)s | %(message)s")
+
+    logging.basicConfig(
+        level=logging.INFO, format="%(levelname)s | %(name)s | %(message)s"
+    )
 
     parser = FreightDataParser()
 
@@ -445,9 +477,11 @@ if __name__ == "__main__":
 
     df = parser.to_dataframe()
     if not df.empty:
-        print(f"\nTop 5 emitting routes:")
-        top = (df.groupby(["origin", "destination"])["co2e_tonnes"]
-                 .sum()
-                 .sort_values(ascending=False)
-                 .head(5))
+        print("\nTop 5 emitting routes:")
+        top = (
+            df.groupby(["origin", "destination"])["co2e_tonnes"]
+            .sum()
+            .sort_values(ascending=False)
+            .head(5)
+        )
         print(top.to_string())

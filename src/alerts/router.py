@@ -19,52 +19,52 @@ logger = logging.getLogger(__name__)
 
 
 class AlertLevel(IntEnum):
-    NORMAL    = 0
-    ADVISORY  = 1   # 60–74%
-    WARNING   = 2   # 75–89%
-    CRITICAL  = 3   # 90–99%
-    EMERGENCY = 4   # 100%+
+    NORMAL = 0
+    ADVISORY = 1  # 60–74%
+    WARNING = 2  # 75–89%
+    CRITICAL = 3  # 90–99%
+    EMERGENCY = 4  # 100%+
 
 
 LEVEL_NAMES = {
-    AlertLevel.NORMAL:    "NORMAL",
-    AlertLevel.ADVISORY:  "ADVISORY",
-    AlertLevel.WARNING:   "WARNING",
-    AlertLevel.CRITICAL:  "CRITICAL",
+    AlertLevel.NORMAL: "NORMAL",
+    AlertLevel.ADVISORY: "ADVISORY",
+    AlertLevel.WARNING: "WARNING",
+    AlertLevel.CRITICAL: "CRITICAL",
     AlertLevel.EMERGENCY: "EMERGENCY",
 }
 
 LEVEL_COLORS = {
-    AlertLevel.ADVISORY:  "#00cc14",
-    AlertLevel.WARNING:   "#ffb800",
-    AlertLevel.CRITICAL:  "#ff7700",
+    AlertLevel.ADVISORY: "#00cc14",
+    AlertLevel.WARNING: "#ffb800",
+    AlertLevel.CRITICAL: "#ff7700",
     AlertLevel.EMERGENCY: "#ff3d3d",
 }
 
 
 def classify(threshold_pct: float) -> AlertLevel:
-    if threshold_pct >= 100: 
+    if threshold_pct >= 100:
         return AlertLevel.EMERGENCY
-    if threshold_pct >= 90:  
+    if threshold_pct >= 90:
         return AlertLevel.CRITICAL
-    if threshold_pct >= 75:  
+    if threshold_pct >= 75:
         return AlertLevel.WARNING
-    if threshold_pct >= 60:  
+    if threshold_pct >= 60:
         return AlertLevel.ADVISORY
     return AlertLevel.NORMAL
 
 
 @dataclass
 class CarbonAlert:
-    route_id:       str
-    route_name:     str
-    threshold_pct:  float
-    level:          AlertLevel
-    co2e_tonnes:    float
-    budget_tonnes:  float
+    route_id: str
+    route_name: str
+    threshold_pct: float
+    level: AlertLevel
+    co2e_tonnes: float
+    budget_tonnes: float
     top_substitution: Optional[str]
     forecast_breach_days: Optional[int]
-    timestamp:      str = ""
+    timestamp: str = ""
 
     def __post_init__(self):
         if not self.timestamp:
@@ -101,12 +101,16 @@ class AlertRouter:
         self.dispatched: list = []
 
     def dispatch(self, alert: CarbonAlert) -> dict:
-        results = {"alert_id": f"ALRT-{alert.timestamp[:10]}-{alert.route_id}",
-                   "level": LEVEL_NAMES[alert.level],
-                   "channels": []}
+        results = {
+            "alert_id": f"ALRT-{alert.timestamp[:10]}-{alert.route_id}",
+            "level": LEVEL_NAMES[alert.level],
+            "channels": [],
+        }
 
-        logger.warning(f"ALERT [{LEVEL_NAMES[alert.level]}] {alert.route_id}: "
-                       f"{alert.threshold_pct:.1f}% — {alert.short_summary()}")
+        logger.warning(
+            f"ALERT [{LEVEL_NAMES[alert.level]}] {alert.route_id}: "
+            f"{alert.threshold_pct:.1f}% — {alert.short_summary()}"
+        )
 
         if alert.level >= AlertLevel.WARNING:
             ok = self._send_email(alert)
@@ -135,11 +139,13 @@ class AlertRouter:
                 return True
 
             msg = MIMEMultipart("alternative")
-            msg["Subject"] = (f"[VERDECHAIN {LEVEL_NAMES[alert.level]}] "
-                              f"Route {alert.route_id} — "
-                              f"{alert.threshold_pct:.1f}% Carbon Budget")
+            msg["Subject"] = (
+                f"[VERDECHAIN {LEVEL_NAMES[alert.level]}] "
+                f"Route {alert.route_id} — "
+                f"{alert.threshold_pct:.1f}% Carbon Budget"
+            )
             msg["From"] = smtp_cfg["from"]
-            msg["To"]   = ", ".join(smtp_cfg.get("to", []))
+            msg["To"] = ", ".join(smtp_cfg.get("to", []))
 
             color = LEVEL_COLORS.get(alert.level, "#00cc14")
             html = f"""
@@ -184,6 +190,7 @@ class AlertRouter:
                 logger.info("[SMS SIMULATED] " + alert.short_summary()[:160])
                 return True
             from twilio.rest import Client
+
             client = Client(sms_cfg["account_sid"], sms_cfg["auth_token"])
             client.messages.create(
                 body=alert.short_summary()[:160],
@@ -202,12 +209,15 @@ class AlertRouter:
                 logger.info("[WEBHOOK SIMULATED] " + json.dumps(alert.to_dict()))
                 return True
             import urllib.request
+
             payload = json.dumps(alert.to_dict()).encode()
             req = urllib.request.Request(
                 wh_cfg["url"],
                 data=payload,
-                headers={"Content-Type": "application/json",
-                         "X-VerdeChain-Alert": LEVEL_NAMES[alert.level]},
+                headers={
+                    "Content-Type": "application/json",
+                    "X-VerdeChain-Alert": LEVEL_NAMES[alert.level],
+                },
             )
             urllib.request.urlopen(req, timeout=10)
             return True
