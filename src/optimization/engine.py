@@ -158,9 +158,11 @@ def rank_substitutions(
         rec = (
             f"URGENT: Apply immediately — threshold at {threshold_pct:.0f}%"
             if threshold_pct >= 90
-            else f"Recommended — will reduce carbon by {c['carbon_saving_pct']:.1f}%"
-            if threshold_pct >= 75
-            else "Advisory — consider for next route planning cycle"
+            else (
+                f"Recommended — will reduce carbon by {c['carbon_saving_pct']:.1f}%"
+                if threshold_pct >= 75
+                else "Advisory — consider for next route planning cycle"
+            )
         )
         results.append(
             SubstitutionResult(
