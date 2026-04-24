@@ -7,7 +7,8 @@ FastAPI application — REST endpoints + WebSocket for live dashboard.
 from fastapi import FastAPI, UploadFile, File, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from typing import List
-import tempfile, os, json, asyncio
+import tempfile
+import os #json, asyncio
 from pathlib import Path
 
 from src.ingestion.parser import FreightDataParser

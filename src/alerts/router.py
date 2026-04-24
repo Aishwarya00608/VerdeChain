@@ -43,10 +43,14 @@ LEVEL_COLORS = {
 
 
 def classify(threshold_pct: float) -> AlertLevel:
-    if threshold_pct >= 100: return AlertLevel.EMERGENCY
-    if threshold_pct >= 90:  return AlertLevel.CRITICAL
-    if threshold_pct >= 75:  return AlertLevel.WARNING
-    if threshold_pct >= 60:  return AlertLevel.ADVISORY
+    if threshold_pct >= 100: 
+        return AlertLevel.EMERGENCY
+    if threshold_pct >= 90:  
+        return AlertLevel.CRITICAL
+    if threshold_pct >= 75:  
+        return AlertLevel.WARNING
+    if threshold_pct >= 60:  
+        return AlertLevel.ADVISORY
     return AlertLevel.NORMAL
 
 
